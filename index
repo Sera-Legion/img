@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Доска изображений в серых тонах</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #1a1a1a;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        h1 {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 25px;
+            font-weight: 300;
+            letter-spacing: 3px;
+            font-size: 28px;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: auto auto;
+            gap: 12px;
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.8);
+        }
+
+        .board-item {
+            position: relative;
+            background: #1e1e1e;
+            border-radius: 10px;
+            overflow: hidden;
+            aspect-ratio: 1 / 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid #3a3a3a;
+            transition: border-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .board-item:hover {
+            border-color: #666;
+            transform: scale(1.02);
+            z-index: 2;
+        }
+
+        .board-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(100%);
+            transition: filter 0.4s ease;
+        }
+
+        .board-item img:hover {
+            filter: grayscale(0%);
+        }
+
+        .board-item .label {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: #ccc;
+            padding: 4px 14px;
+            border-radius: 6px;
+            font-size: 11px;
+            white-space: nowrap;
+            pointer-events: none;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .board-item .badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #888;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            pointer-events: none;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .board-item .badge.user {
+            background: rgba(76, 175, 80, 0.3);
+            color: #8bc34a;
+            border-color: rgba(76, 175, 80, 0.2);
+        }
+
+        .board-item .badge.template {
+            background: rgba(255, 193, 7, 0.15);
+            color: #ffd54f;
+            border-color: rgba(255, 193, 7, 0.1);
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .controls button {
+            padding: 10px 28px;
+            border: none;
+            border-radius: 8px;
+            background: #3a3a3a;
+            color: #aaa;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
+            border: 1px solid transparent;
+        }
+
+        .controls button:hover {
+            background: #4a4a4a;
+            color: #fff;
+        }
+
+        .controls button.active {
+            background: #555;
+            color: #fff;
+            border-color: #777;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
+        }
+
+        .info {
+            color: #666;
+            text-align: center;
+            margin-top: 15px;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+        }
+
+        .info span {
+            color: #888;
+        }
+
+        /* Адаптив */
+        @media (max-width: 768px) {
+            .board {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+                padding: 12px;
+            }
+            
+            .board-item .label {
+                font-size: 9px;
+                padding: 2px 10px;
+                bottom: 4px;
+            }
+            
+            .board-item .badge {
+                font-size: 8px;
+                padding: 1px 8px;
+                top: 4px;
+                right: 4px;
+            }
+            
+            h1 {
+                font-size: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .board {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Доска в серых тонах</h1>
+
+        <div class="board" id="imageBoard">
+            <!-- Ряд 1: 5 изображений -->
+            <!-- 1. Ваше изображение -->
+            <div class="board-item" data-index="0">
+                <img src="image 152.png" alt="image 152.png" 
+                     onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22300%22%3E%3Crect fill=%22%23222%22 width=%22300%22 height=%22300%22/%3E%3Ctext x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23555%22 font-family=%22Arial%22 font-size=%2218%22%3Eimage 152.png%3C/text%3E%3C/svg%3E'">
+                <span class="label">image 152.png</span>
+                <span class="badge user">● Пользователь</span>
+            </div>
+
+            <!-- 2. Ваше второе изображение -->
+            <div class="board-item" data-index="1">
+                <img src="image 152 (1).png" alt="image 152 (1).png" 
+                     onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22300%22%3E%3Crect fill=%22%23222%22 width=%22300%22 height=%22300%22/%3E%3Ctext x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23555%22 font-family=%22Arial%22 font-size=%2218%22%3Eimage 152 (1).png%3C/text%3E%3C/svg%3E'">
+                <span class="label">image 152 (1).png</span>
+                <span class="badge user">● Пользователь</span>
+            </div>
+
+            <!-- 3. Шаблон 1 -->
+            <div class="board-item" data-index="2">
+                <img src="" alt="Шаблон 1" 
+                     onerror="this.style.display='none'">
+                <div class="template-placeholder" style="
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    background: linear-gradient(135deg, #1e1e1e 0%, #2a2a2a 100%);
+                    color: #555;
+                    font-size: 14px;
+                    text-align: center;
+                    padding: 20px;
+                ">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="1.5">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <circle cx="8.5" cy="8.5" r="2.5"/>
+                        <path d="M21 15L16 10L5 21"/>
+                    </svg>
+                    <span style="margin-top: 10px; font-size: 12px; color: #444;">Шаблон A</span>
+                </div>
+                <span class="label">Шаблон A</span>
+                <span class="badge template">◇ Шаблон</span>
+            </div>
+
+            <!-- 4. Шаблон 2 -->
+            <div class="board-item" data-index="3">
+                <img src="" alt="Шаблон 2" 
+                     onerror="this.style.display='none'">
+                <div class="template-placeholder" style="
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                    color: #555;
+                    font-size: 14px;
+                    text-align: center;
+                    padding: 20px;
+                ">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#446" stroke-width="1.5">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <circle cx="12" cy="12" r="4"/>
+                        <path d="M21 15L16 10L5 21"/>
+                    </svg>
+                    <span style="margin-top: 10px; font-size: 12px; color: #446;">Шаблон B</span>
+                </div>
+                <span class="label">Шаблон B</span>
+                <span class="badge template">◇ Шаблон</span>
+            </div>
+
+            <!-- 5. Шаблон 3 -->
+            <div class="board-item" data-index="4">
+                <img src="" alt="Шаблон 3" 
+                     onerror="this.style.display='none'">
+                <div class="template-placeholder" style="
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    background: linear-gradient(135deg, #1e1e1e 0%, #2d1b1b 100%);
+                    color: #555;
+                    font-size: 14px;
+                    text-align: center;
+                    padding: 20px;
+                ">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#644" stroke-width="1.5">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <path d="M3 9L9 3"/>
+                        <path d="M21 15L15 21"/>
+                    </svg>
+                    <span style="margin-top: 10px; font-size: 12px; color: #644;">Шаблон C</span>
+                </div>
+                <span class="label">Шаблон C</span>
+                <span class="badge template">◇ Шаблон</span>
+            </div>
+
+            <!-- Ряд 2: ещё 5 изображений (снова 2 ваших + 3 шаблона, но других) -->
+            <!-- 6. Ваше первое (повтор) -->
+            <div class="board-item" data-index="5">
+                <img src="image 152.png" alt="image 152.png" 
+                     onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22300%22%3E%3Crect fill=%22%23222%22 width=%22300%22 height=%22300%22/%3E%3Ctext x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23555%22 font-family=%22Arial%22 font-size=%2218%22%3Eimage 152.png%3C/text%3E%3C/svg%3E'">
+                <span class="label">image 152.png</span>
+                <span class="badge user">● Пользователь</span>
+            </div>
+
+            <!-- 7. Ваше второе (повтор) -->
+            <div class="board-item" data-index="6">
+                <img src="image 152 (1).png" alt="image 152 (1).png" 
+                     onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22300%22%3E%3Crect fill=%22%23222%22 width=%22300%22 height=%22300%22/%3E%3Ctext x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23555%22 font-family=%22Arial%22 font-size=%2218%22%3Eimage 152 (1).png%3C/text%3E%3C/svg%3E'">
+                <span class="label">image 152 (1).png</span>
+                <span class="badge user">● Пользователь</span>
+            </div>
+
+            <!-- 8. Шаблон 4 -->
+            <div class="board-item" data-index="7">
+                <img src="" alt="Шаблон 4" 
+                     onerror="this.style.display='none'">
+                <div class="template-placeholder" style="
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    background: linear-gradient(135deg, #1e2a1e 0%, #1a2a1a 100%);
+                    color: #555;
+                    font-size: 14px;
+                    text-align: center;
+                    padding: 20px;
+                ">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#464" stroke-width="1.5">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <circle cx="9" cy="9" r="2"/>
+                        <circle cx="15" cy="15" r="2"/>
+                    </svg>
+                    <span style="margin-top: 10px; font-size: 12px; color: #464;">Шаблон D</span>
+                </div>
+                <span class="label">Шаблон D</span>
+                <span class="badge template">◇ Шаблон</span>
+            </div>
+
+            <!-- 9. Шаблон 5 -->
+            <div class="board-item" data-index="8">
+                <img src="" alt="Шаблон 5" 
+                     onerror="this.style.display='none'">
+                <div class="template-placeholder" style="
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    background: linear-gradient(135deg, #2a1a2a 0%, #2a1e2a 100%);
+                    color: #555;
+                    font-size: 14px;
+                    text-align: center;
+                    padding: 20px;
+                ">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#646" stroke-width="1.5">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <polygon points="12,4 20,9 12,14 4,9"/>
+                    </svg>
+                    <span style="margin-top: 10px; font-size: 12px; color: #646;">Шаблон E</span>
+                </div>
+                <span class="label">Шаблон E</span>
+                <span class="badge template">◇ Шаблон</span>
+            </div>
+
+            <!-- 10. Шаблон 6 -->
+            <div class="board-item" data-index="9">
+                <img src="" alt="Шаблон 6" 
+                     onerror="this.style.display='none'">
+                <div class="template-placeholder" style="
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    background: linear-gradient(135deg, #1a1a2a 0%, #1a1a1a 100%);
+                    color: #555;
+                    font-size: 14px;
+                    text-align: center;
+                    padding: 20px;
+                ">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#446" stroke-width="1.5">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <line x1="8" y1="8" x2="16" y2="16"/>
+                        <line x1="16" y1="8" x2="8" y2="16"/>
+                    </svg>
+                    <span style="margin-top: 10px; font-size: 12px; color: #446;">Шаблон F</span>
+                </div>
+                <span class="label">Шаблон F</span>
+                <span class="badge template">◇ Шаблон</span>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="active" onclick="setFilter('grayscale')">🔘 Серый</button>
+            <button onclick="setFilter('none')">🎨 Цветной</button>
+            <button onclick="toggleTemplates()">👁 Скрыть шаблоны</button>
+        </div>
+
+        <div class="info">
+            <span>●</span> Пользовательские: <span id="userCount">2</span> &nbsp;|&nbsp; 
+            <span>◇</span> Шаблоны: <span id="templateCount">8</span> &nbsp;|&nbsp; 
+            Всего: <span id="totalCount">10</span>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // Переключение серого/цветного режима
+        // ============================================================
+        function setFilter(mode) {
+            const imgs = document.querySelectorAll('.board-item img');
+            const btns = document.querySelectorAll('.controls button');
+            
+            btns.forEach(btn => btn.classList.remove('active'));
+            
+            if (mode === 'grayscale') {
+                imgs.forEach(img => {
+                    if (img.style.display !== 'none') {
+                        img.style.filter = 'grayscale(100%)';
+                    }
+                });
+                btns[0].classList.add('active');
+            } else {
+                imgs.forEach(img => {
+                    if (img.style.display !== 'none') {
+                        img.style.filter = 'grayscale(0%)';
+                    }
+                });
+                btns[1].classList.add('active');
+            }
+        }
+
+        // ============================================================
+        // Скрыть/показать шаблоны
+        // ============================================================
+        let templatesVisible = true;
+
+        function toggleTemplates() {
+            const items = document.querySelectorAll('.board-item');
+            const btn = document.querySelectorAll('.controls button')[2];
+            
+            templatesVisible = !templatesVisible;
+            
+            items.forEach((item, index) => {
+                // Индексы 0,1,5,6 — пользовательские (первые два и их повторы)
+                const isUser = (index === 0 || index === 1 || index === 5 || index === 6);
+                
+                if (!isUser) {
+                    item.style.display = templatesVisible ? 'flex' : 'none';
+                }
+            });
+            
+            btn.textContent = templatesVisible ? '👁 Скрыть шаблоны' : '👁 Показать шаблоны';
+            updateCounts();
+        }
+
+        // ============================================================
+        // Обновление счётчиков
+        // ============================================================
+        function updateCounts() {
+            const items = document.querySelectorAll('.board-item');
+            let userCount = 0;
+            let templateCount = 0;
+            
+            items.forEach(item => {
+                if (item.style.display !== 'none') {
+                    if (item.querySelector('.badge.user')) {
+                        userCount++;
+                    } else {
+                        templateCount++;
+                    }
+                }
+            });
+            
+            document.getElementById('userCount').textContent = userCount;
+            document.getElementById('templateCount').textContent = templateCount;
+            document.getElementById('totalCount').textContent = userCount + templateCount;
+        }
+
+        // ============================================================
+        // Инициализация
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // Применяем серый фильтр ко всем видимым изображениям
+            const imgs = document.querySelectorAll('.board-item img');
+            imgs.forEach(img => {
+                if (img.style.display !== 'none') {
+                    img.style.filter = 'grayscale(100%)';
+                }
+            });
+            
+            updateCounts();
+        });
+
+        // ============================================================
+        // Обработка ошибок для изображений
+        // ============================================================
+        document.querySelectorAll('.board-item img').forEach(img => {
+            img.addEventListener('error', function() {
+                // Если изображение не загрузилось, показываем плейсхолдер
+                const parent = this.closest('.board-item');
+                const placeholder = parent.querySelector('.template-placeholder');
+                if (placeholder) {
+                    this.style.display = 'none';
+                    placeholder.style.display = 'flex';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
